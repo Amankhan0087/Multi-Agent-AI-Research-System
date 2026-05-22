@@ -1,0 +1,44 @@
+# ============================================================
+# Multi-Agent Research System - Requirements
+# ============================================================
+
+# ------------------------------------------------------------
+# Web Scraping & Data Extraction Tools
+# ------------------------------------------------------------
+tavily-python>=0.3.0          # Tavily search/research tool (Tool 1)
+beautifulsoup4>=4.12.0        # BeautifulSoup HTML/XML parsing (Tool 2)
+requests>=2.31.0              # HTTP requests for web fetching
+lxml>=4.9.0                   # Fast XML/HTML parser (BeautifulSoup backend)
+httpx>=0.25.0                 # Async HTTP client
+
+# ------------------------------------------------------------
+# Google Gemini API (Agent LLM Backend)
+# ------------------------------------------------------------
+google-generativeai>=0.7.0    # Google Gemini API client
+langchain-google-genai>=1.0.0 # LangChain integration for Gemini models
+
+# ------------------------------------------------------------
+# LangGraph / Runnables (Pipeline Orchestration)
+# ------------------------------------------------------------
+langgraph>=0.1.0              # Multi-agent graph orchestration with Runnables
+langchain>=0.2.0              # Core LangChain (Runnables, Tools, Prompts)
+langchain-core>=0.2.0         # LangChain Runnables & LCEL pipeline primitives
+
+# ------------------------------------------------------------
+# React Agent
+# ------------------------------------------------------------
+# React (Reasoning + Acting) agent is built using LangGraph
+# and LangChain's create_react_agent — no separate package needed
+# Requires: langchain, langchain-google-genai, langgraph (listed above)
+
+# ------------------------------------------------------------
+# Environment & Configuration
+# ------------------------------------------------------------
+python-dotenv>=1.0.0          # Load API keys from .env file
+pydantic>=2.0.0               # Data validation and settings management
+
+# ------------------------------------------------------------
+# Utilities
+# ------------------------------------------------------------
+typing-extensions>=4.8.0      # Extended type hints support
+tenacity>=8.2.0               # Retry logic for API calls
