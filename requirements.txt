@@ -42,3 +42,4 @@ pydantic>=2.0.0               # Data validation and settings management
 # ------------------------------------------------------------
 typing-extensions>=4.8.0      # Extended type hints support
 tenacity>=8.2.0               # Retry logic for API calls
+rich>=13.0.0                  # Rich terminal formatting and output styling

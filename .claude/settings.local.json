@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(& \"C:/Program Files/Python313/python.exe\" \"c:/Users/Haroon Traders/Multi-Agent-AI-Research-System/tools.py\" 2>&1)"
+      "PowerShell(& \"C:/Program Files/Python313/python.exe\" \"c:/Users/Haroon Traders/Multi-Agent-AI-Research-System/tools.py\" 2>&1)",
+      "Bash(python tools.py)",
+      "Bash(pip install *)"
     ]
   }
 }
