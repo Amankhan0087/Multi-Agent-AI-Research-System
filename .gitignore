@@ -1,1 +1,29 @@
-.env 
+# Environment & Secrets
+.env
+*.env
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Claude Code settings (local IDE tooling — not project source)
+.claude/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
