@@ -529,7 +529,7 @@ with st.sidebar:
 
     for icon, name, detail in [
         ("🤖", "Groq",         "Llama 3.3 70B (primary)"),
-        ("✨", "Gemini",        "2.0 Flash (fallback)"),
+        ("🌀", "Mistral",      "Small Latest (fallback)"),
         ("🔗", "LangGraph",    "ReAct Agents"),
         ("🌐", "Tavily",       "Real-time Search"),
     ]:
@@ -750,5 +750,5 @@ if r and st.session_state.current_step in (0, 5):
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="notice">
-    ResearchMind · Groq Llama 3.3 70B + Gemini 2.0 Flash · LangGraph ReAct · Tavily · Streamlit
+    ResearchMind · Groq Llama 3.3 70B + Mistral Small · LangGraph ReAct · Tavily · Streamlit
 </div>""", unsafe_allow_html=True)

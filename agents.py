@@ -1,6 +1,6 @@
 from langgraph.prebuilt import create_react_agent
 from langchain_groq import ChatGroq
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_mistralai import ChatMistralAI
 from tools import web_search, scrape_url
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -10,10 +10,14 @@ import os
 load_dotenv()
 
 
-def _build_llm(max_tokens_groq: int, max_tokens_gemini: int):
+def _build_llm(max_tokens_groq: int, max_tokens_mistral: int):
     """
-    Build an LLM with Gemini as automatic fallback when Groq hits rate limits.
-    If GEMINI_API_KEY is not set, returns Groq only.
+    Primary : Groq — Llama 3.3 70B Versatile  (12,000 TPM free tier)
+    Fallback : Mistral — mistral-small-latest  (1B tokens/month free tier)
+
+    LangChain automatically switches to Mistral on any Groq failure
+    (rate limit, quota, downtime) without any extra code.
+    If MISTRAL_API_KEY is not set, falls back to Groq-only mode.
     """
     groq = ChatGroq(
         model="llama-3.3-70b-versatile",
@@ -22,34 +26,34 @@ def _build_llm(max_tokens_groq: int, max_tokens_gemini: int):
         max_tokens=max_tokens_groq,
     )
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
-        return groq  # no fallback configured
+    mistral_key = os.getenv("MISTRAL_API_KEY")
+    if not mistral_key:
+        return groq
 
-    gemini = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
-        google_api_key=gemini_key,
+    mistral = ChatMistralAI(
+        model="mistral-small-latest",
+        mistral_api_key=mistral_key,
         temperature=0,
-        max_output_tokens=max_tokens_gemini,
+        max_tokens=max_tokens_mistral,
     )
 
-    # Groq first → Gemini on any failure (rate limit, quota, downtime)
-    return groq.with_fallbacks([gemini])
+    # Groq first → Mistral on any failure
+    return groq.with_fallbacks([mistral])
 
 
-# Agents: brief tool calls + short summaries
-llm_agent = _build_llm(max_tokens_groq=700, max_tokens_gemini=800)
+# Agents: tool calls + brief summaries (low token budget)
+llm_agent = _build_llm(max_tokens_groq=700, max_tokens_mistral=800)
 
-# Writer & Critic: full report generation
-llm_chain = _build_llm(max_tokens_groq=1500, max_tokens_gemini=1800)
+# Writer & Critic: full report generation (higher token budget)
+llm_chain = _build_llm(max_tokens_groq=1500, max_tokens_mistral=1800)
 
 
-# 1st agent
+# 1st agent — web search
 def build_search_agent():
     return create_react_agent(llm_agent, [web_search])
 
 
-# 2nd agent
+# 2nd agent — web scraper
 def build_reader_agent():
     return create_react_agent(llm_agent, [scrape_url])
 
