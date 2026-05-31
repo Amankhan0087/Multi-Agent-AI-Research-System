@@ -13,6 +13,15 @@ from agents import build_reader_agent, build_search_agent, writer_chain, critic_
 COOKIE_NAME = "researchmind_session"
 COOKIE_DAYS = 30
 
+
+def get_secret(key: str) -> str:
+    """Read from Streamlit Cloud secrets dashboard OR local .env file."""
+    try:
+        return st.secrets[key]
+    except Exception:
+        import os
+        return os.getenv(key, "")
+
 # ── DB init ───────────────────────────────────────────────────────────────────
 init_db()
 

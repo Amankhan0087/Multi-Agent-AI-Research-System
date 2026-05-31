@@ -10,7 +10,10 @@ import re
 import os
 from datetime import datetime, timedelta
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "users.db")
+# Use /tmp on cloud platforms (Streamlit Cloud, Render, etc.)
+# where the app directory may be read-only
+_base = "/tmp" if os.path.exists("/tmp") and not os.access(os.path.dirname(os.path.abspath(__file__)), os.W_OK) else os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(_base, "users.db")
 
 
 def init_db() -> None:

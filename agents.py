@@ -10,6 +10,18 @@ import os
 load_dotenv()
 
 
+def _get_key(name: str) -> str:
+    """Read API key from env (.env locally) or Streamlit Cloud secrets."""
+    val = os.getenv(name, "")
+    if not val:
+        try:
+            import streamlit as st
+            val = st.secrets.get(name, "")
+        except Exception:
+            pass
+    return val
+
+
 def _build_llm(max_tokens_groq: int, max_tokens_mistral: int):
     """
     Primary : Groq — Llama 3.3 70B Versatile  (12,000 TPM free tier)
@@ -21,12 +33,12 @@ def _build_llm(max_tokens_groq: int, max_tokens_mistral: int):
     """
     groq = ChatGroq(
         model="llama-3.3-70b-versatile",
-        groq_api_key=os.getenv("GROQ_API_KEY"),
+        groq_api_key=_get_key("GROQ_API_KEY"),
         temperature=0,
         max_tokens=max_tokens_groq,
     )
 
-    mistral_key = os.getenv("MISTRAL_API_KEY")
+    mistral_key = _get_key("MISTRAL_API_KEY")
     if not mistral_key:
         return groq
 

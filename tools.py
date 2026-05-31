@@ -9,7 +9,19 @@ from rich import print
 
 load_dotenv()
 
-tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+
+def _get_key(name: str) -> str:
+    val = os.getenv(name, "")
+    if not val:
+        try:
+            import streamlit as st
+            val = st.secrets.get(name, "")
+        except Exception:
+            pass
+    return val
+
+
+tavily = TavilyClient(api_key=_get_key("TAVILY_API_KEY"))
 
 # Realistic browser headers — avoids bot-detection connection resets
 _HEADERS = {
