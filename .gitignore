@@ -36,3 +36,6 @@ users.db
 
 # Streamlit secrets (keep config.toml but ignore secrets.toml)
 .streamlit/secrets.toml
+
+# Generated PDF reports
+*.pdf
