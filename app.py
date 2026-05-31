@@ -5,7 +5,26 @@ Multi-Agent AI Research Pipeline powered by Groq + LangGraph
 
 import streamlit as st
 import time
+import re
 from agents import build_reader_agent, build_search_agent, writer_chain, critic_chain
+
+# ── Retry helper ─────────────────────────────────────────────────────────────
+def run_with_retry(fn, label: str, max_retries: int = 4):
+    """Auto-retry on Groq 429 rate-limit errors using the delay Groq provides."""
+    for attempt in range(max_retries):
+        try:
+            return fn()
+        except Exception as e:
+            err = str(e)
+            if "429" in err and "rate_limit" in err.lower():
+                match = re.search(r"try again in (\d+(?:\.\d+)?)s", err)
+                wait = float(match.group(1)) + 1.0 if match else 6.0
+                if attempt < max_retries - 1:
+                    st.toast(f"⏳ Rate limit on {label} — retrying in {wait:.0f}s…")
+                    time.sleep(wait)
+                    continue
+            raise  # non-429 errors bubble up immediately
+
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -430,9 +449,12 @@ cs = st.session_state.current_step
 if cs == 1:
     try:
         agent = build_search_agent()
-        result = agent.invoke({
-            "messages": [("user", f"Find recent, reliable and detailed information about: {st.session_state.topic}")]
-        })
+        result = run_with_retry(
+            lambda: agent.invoke({
+                "messages": [("user", f"Find recent, reliable and detailed information about: {st.session_state.topic}")]
+            }),
+            "Search Agent",
+        )
         st.session_state.results["search"] = result["messages"][-1].content
         st.session_state.current_step = 2
     except Exception as e:
@@ -444,13 +466,16 @@ if cs == 1:
 elif cs == 2:
     try:
         agent = build_reader_agent()
-        result = agent.invoke({
-            "messages": [("user",
-                f"Based on the following search results about '{st.session_state.topic}', "
-                f"pick the most relevant URL and scrape it for deeper content.\n\n"
-                f"Search Results:\n{st.session_state.results['search'][:800]}"
-            )]
-        })
+        result = run_with_retry(
+            lambda: agent.invoke({
+                "messages": [("user",
+                    f"Based on the following search results about '{st.session_state.topic}', "
+                    f"pick the most relevant URL and scrape it for deeper content.\n\n"
+                    f"Search Results:\n{st.session_state.results['search'][:600]}"
+                )]
+            }),
+            "Reader Agent",
+        )
         st.session_state.results["reader"] = result["messages"][-1].content
         st.session_state.current_step = 3
     except Exception as e:
@@ -462,13 +487,16 @@ elif cs == 2:
 elif cs == 3:
     try:
         research = (
-            f"SEARCH RESULTS:\n{st.session_state.results['search']}\n\n"
-            f"DETAILED SCRAPED CONTENT:\n{st.session_state.results['reader']}"
+            f"SEARCH RESULTS:\n{st.session_state.results['search'][:1000]}\n\n"
+            f"SCRAPED CONTENT:\n{st.session_state.results['reader'][:800]}"
         )
-        st.session_state.results["writer"] = writer_chain.invoke({
-            "topic": st.session_state.topic,
-            "research": research,
-        })
+        st.session_state.results["writer"] = run_with_retry(
+            lambda: writer_chain.invoke({
+                "topic": st.session_state.topic,
+                "research": research,
+            }),
+            "Writer Chain",
+        )
         st.session_state.current_step = 4
     except Exception as e:
         st.session_state.error = str(e)
@@ -478,9 +506,12 @@ elif cs == 3:
 
 elif cs == 4:
     try:
-        st.session_state.results["critic"] = critic_chain.invoke({
-            "report": st.session_state.results["writer"]
-        })
+        st.session_state.results["critic"] = run_with_retry(
+            lambda: critic_chain.invoke({
+                "report": st.session_state.results["writer"]
+            }),
+            "Critic Chain",
+        )
         st.session_state.current_step = 5
         st.session_state.elapsed = time.time() - st.session_state.start_time
     except Exception as e:

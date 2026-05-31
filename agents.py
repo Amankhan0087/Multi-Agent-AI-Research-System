@@ -8,24 +8,33 @@ import os
 
 load_dotenv()
 
+_key = os.getenv("GROQ_API_KEY")
 
-#model setup
-llm = ChatGroq(
+# Agents use fewer tokens — they only call tools and give brief summaries
+llm_agent = ChatGroq(
     model="llama-3.3-70b-versatile",
-    groq_api_key=os.getenv("GROQ_API_KEY"),
+    groq_api_key=_key,
     temperature=0,
-    max_tokens=2048,
+    max_tokens=700,
+)
+
+# Writer and critic chains need more room for full reports
+llm_chain = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    groq_api_key=_key,
+    temperature=0,
+    max_tokens=1500,
 )
 
 
 #1st agent
 def build_search_agent():
-    return create_react_agent(llm, [web_search])
+    return create_react_agent(llm_agent, [web_search])
 
 
 #2nd agent
 def build_reader_agent():
-    return create_react_agent(llm, [scrape_url])
+    return create_react_agent(llm_agent, [scrape_url])
 
 
 #Writer chain 
@@ -48,10 +57,10 @@ Structure the report as:
 Be detailed, factual and professional."""),
 ])
 
-writer_chain = writer_prompt | llm | StrOutputParser()
+writer_chain = writer_prompt | llm_chain | StrOutputParser()
 
 
-#critic_chain 
+#critic_chain
 
 critic_prompt = ChatPromptTemplate.from_messages([
     ("system", "You are a sharp and constructive research critic. Be honest and specific."),
@@ -76,6 +85,6 @@ One line verdict:
 ..."""),
 ])
 
-critic_chain = critic_prompt | llm | StrOutputParser()
+critic_chain = critic_prompt | llm_chain | StrOutputParser()
 
 
