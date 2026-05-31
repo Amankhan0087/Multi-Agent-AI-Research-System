@@ -1,10 +1,11 @@
 # Multi-Agent AI Research System
 
-> An intelligent, multi-agent pipeline that autonomously searches the web, scrapes sources, writes structured research reports, and critiques them — all powered by Google Gemini and LangChain.
+> An intelligent, multi-agent pipeline that autonomously searches the web, scrapes sources, writes structured research reports, and critiques them — powered by Groq (Llama 3.3 70B), LangChain, and Tavily.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-0.2%2B-green?logo=chainlink&logoColor=white)
-![Gemini](https://img.shields.io/badge/Google%20Gemini-2.0%20Pro-orange?logo=google&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq-Llama%203.3%2070B-orange?logo=groq&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-ReAct%20Agent-purple)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
@@ -19,7 +20,7 @@ The **Multi-Agent AI Research System** automates the full research lifecycle usi
 3. **Writes** a professional, structured research report
 4. **Critiques** the report for quality, accuracy, and completeness
 
-Each stage is handled by a dedicated agent or LangChain Runnable, making the system modular, extensible, and transparent.
+Each stage is handled by a dedicated LangGraph ReAct agent or LangChain Runnable, making the system modular, extensible, and transparent.
 
 ---
 
@@ -45,13 +46,13 @@ Each stage is handled by a dedicated agent or LangChain Runnable, making the sys
 │         │ scraped_content                                       │
 │         ▼                                                       │
 │  ┌──────────────┐                                               │
-│  │ Writer Chain │  ← Gemini 2.0 Pro LLM                        │
+│  │ Writer Chain │  ← Groq Llama 3.3 70B                        │
 │  │  (Step 3)    │    Generates structured report                │
 │  └──────┬───────┘                                               │
 │         │ report                                                │
 │         ▼                                                       │
 │  ┌──────────────┐                                               │
-│  │ Critic Chain │  ← Gemini 2.0 Pro LLM                        │
+│  │ Critic Chain │  ← Groq Llama 3.3 70B                        │
 │  │  (Step 4)    │    Scores & critiques the report              │
 │  └──────┬───────┘                                               │
 │         │ feedback                                              │
@@ -71,6 +72,7 @@ Each stage is handled by a dedicated agent or LangChain Runnable, making the sys
 - **Automated Quality Review** — critic agent scores every report (X/10) with strengths and improvement areas
 - **Rich Terminal Output** — color-formatted pipeline progress via the `rich` library
 - **Dual Run Modes** — interactive CLI loop or single-shot command-line query
+- **Free Tier Friendly** — runs entirely on Groq and Tavily free tiers, no billing required
 
 ---
 
@@ -78,8 +80,8 @@ Each stage is handled by a dedicated agent or LangChain Runnable, making the sys
 
 | Layer | Technology |
 |-------|-----------|
-| LLM Backend | Google Gemini 2.0 Pro (`langchain-google-genai`) |
-| Agent Framework | LangChain + LangGraph |
+| LLM Backend | Groq — Llama 3.3 70B Versatile (`langchain-groq`) |
+| Agent Framework | LangChain + LangGraph ReAct |
 | Web Search | Tavily Search API (`tavily-python`) |
 | Web Scraping | BeautifulSoup4 + Requests |
 | Pipeline Orchestration | LangChain LCEL (Runnables) |
@@ -105,8 +107,8 @@ Multi-Agent-AI-Research-System/
 ## Prerequisites
 
 - Python 3.10+
-- A [Google AI Studio](https://aistudio.google.com/) API key (Gemini)
-- A [Tavily](https://tavily.com/) API key
+- A [Groq](https://console.groq.com/) API key (free tier available)
+- A [Tavily](https://tavily.com/) API key (free tier available)
 
 ---
 
@@ -115,7 +117,7 @@ Multi-Agent-AI-Research-System/
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/Multi-Agent-AI-Research-System.git
+git clone https://github.com/Amankhan0087/Multi-Agent-AI-Research-System.git
 cd Multi-Agent-AI-Research-System
 ```
 
@@ -146,9 +148,13 @@ pip install -r requirements.txt
 Create a `.env` file in the project root:
 
 ```env
-GOOGLE_API_KEY=your_google_gemini_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 TAVILY_API_KEY=your_tavily_api_key_here
 ```
+
+Get your free keys here:
+- **Groq** → [https://console.groq.com/keys](https://console.groq.com/keys)
+- **Tavily** → [https://app.tavily.com/](https://app.tavily.com/)
 
 > `.env` is listed in `.gitignore` and will never be committed.
 
@@ -158,7 +164,7 @@ TAVILY_API_KEY=your_tavily_api_key_here
 
 ### Interactive Mode
 
-Start an interactive research session where you can ask multiple questions:
+Start an interactive research session:
 
 ```bash
 python pipeline.py
@@ -173,37 +179,44 @@ Enter a research topic: artificial intelligence in healthcare
 The system prints live progress for each step:
 
 ```
- ================================================
+ ==================================================
 step 1 - search agent is working ...
-=================================================
+==================================================
 
- search result  [Tavily results...]
+ search result  [AI-summarized web results...]
 
- ================================================
+ ==================================================
 step 2 - Reader agent is scraping top resources ...
-=================================================
+==================================================
 
  scraped content: [Full page text...]
 
- ================================================
+ ==================================================
 step 3 - Writer is drafting the report ...
-=================================================
+==================================================
 
  Final Report
- [Structured report with Introduction, Key Findings, Conclusion, Sources]
+ Introduction: ...
+ Key Findings: ...
+ Conclusion: ...
+ Sources: ...
 
- ================================================
+ ==================================================
 step 4 - critic is reviewing the report
-=================================================
+==================================================
 
  critic report
  Score: 8/10
 
  Strengths:
- - ...
+ - Well-structured with clear sections
+ - Covers key trends in AI healthcare
 
  Areas to Improve:
- - ...
+ - Needs more concrete statistics
+ - Sources section could be more specific
+
+ One line verdict: A solid overview but lacks depth in empirical evidence.
 ```
 
 ---
@@ -211,20 +224,20 @@ step 4 - critic is reviewing the report
 ## Pipeline Steps in Detail
 
 ### Step 1 — Search Agent
-Uses the **Tavily Search API** to find the 5 most relevant and recent web results for the given topic. Returns titles, URLs, and content snippets.
+A **LangGraph ReAct agent** powered by Groq (Llama 3.3 70B) uses the **Tavily Search API** to find the 5 most relevant and recent web results. Returns titles, URLs, and content snippets.
 
 ### Step 2 — Reader Agent
-Takes the search results, picks the most relevant URL, and uses **BeautifulSoup** to scrape the full page content (up to 3,000 characters of clean text).
+A second **LangGraph ReAct agent** takes the search results, picks the most relevant URL, and uses **BeautifulSoup** to scrape the full page content (up to 3,000 characters of clean text).
 
 ### Step 3 — Writer Chain
-Combines search snippets + scraped content and passes them to **Gemini 2.0 Pro** with a structured prompt. Outputs a full research report with:
+Combines search snippets + scraped content and passes them to **Groq Llama 3.3 70B** via a LangChain LCEL chain. Outputs a full research report with:
 - Introduction
-- Key Findings (minimum 3 points)
+- Key Findings (minimum 3 well-explained points)
 - Conclusion
 - Sources
 
 ### Step 4 — Critic Chain
-Sends the report back to **Gemini 2.0 Pro** with a critic persona. Returns a structured review:
+Sends the report back to **Groq Llama 3.3 70B** with a critic persona. Returns a structured review:
 - Score (X/10)
 - Strengths
 - Areas to Improve
@@ -234,7 +247,8 @@ Sends the report back to **Gemini 2.0 Pro** with a critic persona. Returns a str
 
 ## Roadmap
 
-- [ ] Fix `main.py` → wire it to `run_research_pipeline` in `pipeline.py`
+- [x] Fix `main.py` → wired to `run_research_pipeline` in `pipeline.py`
+- [x] Switch LLM backend to Groq free tier (Llama 3.3 70B)
 - [ ] Add LangGraph state graph for true parallel agent execution
 - [ ] Support multiple URL scraping (not just the top result)
 - [ ] Add a retry/refinement loop — if critic score < 7, re-run the writer
@@ -258,4 +272,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Author
 
-Built by **Aman Khan** — powered by Google Gemini, LangChain, and Tavily.
+Built by **Aman Khan** — powered by Groq, LangChain, LangGraph, and Tavily.
