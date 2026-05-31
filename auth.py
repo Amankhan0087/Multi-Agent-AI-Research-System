@@ -1,12 +1,14 @@
 """
-Auth module — SQLite + bcrypt user management.
-Handles registration, login, and password verification.
+Auth module — SQLite + bcrypt user management + session tokens.
+Handles registration, login, password verification, and persistent sessions.
 """
 
 import sqlite3
 import bcrypt
+import secrets
 import re
 import os
+from datetime import datetime, timedelta
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "users.db")
 
@@ -22,6 +24,14 @@ def init_db() -> None:
                 created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        # Persistent login sessions — token stored in browser cookie
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                token      TEXT PRIMARY KEY,
+                username   TEXT NOT NULL,
+                expires_at TIMESTAMP NOT NULL
+            )
+        """)
         conn.commit()
 
 
@@ -32,6 +42,8 @@ def _hash_password(password: str) -> str:
 def _verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
+
+# ── User auth ─────────────────────────────────────────────────────────────────
 
 def register_user(username: str, email: str, password: str) -> tuple[bool, str]:
     username = username.strip()
@@ -73,3 +85,47 @@ def login_user(email: str, password: str) -> tuple[bool, str, str]:
         return False, "", "Incorrect password."
     except Exception as e:
         return False, "", f"Login error: {e}"
+
+
+# ── Session tokens (remember me) ──────────────────────────────────────────────
+
+def create_session(username: str, days: int = 30) -> str:
+    """Generate a secure session token and store it. Returns the token."""
+    token = secrets.token_urlsafe(32)
+    expires = datetime.now() + timedelta(days=days)
+    with sqlite3.connect(DB_PATH) as conn:
+        # Clean up any expired sessions first
+        conn.execute("DELETE FROM sessions WHERE expires_at < datetime('now')")
+        conn.execute(
+            "INSERT INTO sessions (token, username, expires_at) VALUES (?, ?, ?)",
+            (token, username, expires.isoformat()),
+        )
+        conn.commit()
+    return token
+
+
+def get_session_user(token: str) -> str | None:
+    """Return username if token is valid and not expired, else None."""
+    if not token:
+        return None
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            row = conn.execute(
+                "SELECT username FROM sessions WHERE token = ? AND expires_at > datetime('now')",
+                (token,),
+            ).fetchone()
+        return row[0] if row else None
+    except Exception:
+        return None
+
+
+def delete_session(token: str) -> None:
+    """Delete a session token on logout."""
+    if not token:
+        return
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+            conn.commit()
+    except Exception:
+        pass
