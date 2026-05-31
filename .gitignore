@@ -31,5 +31,8 @@ build/
 # Docker
 *.tar
 
+# SQLite user database (contains hashed passwords — never commit)
+users.db
+
 # Streamlit secrets (keep config.toml but ignore secrets.toml)
 .streamlit/secrets.toml
