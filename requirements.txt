@@ -12,10 +12,10 @@ lxml>=4.9.0                   # Fast XML/HTML parser (BeautifulSoup backend)
 httpx>=0.25.0                 # Async HTTP client
 
 # ------------------------------------------------------------
-# Google Gemini API (Agent LLM Backend)
+# Groq API (Agent LLM Backend)
 # ------------------------------------------------------------
-google-generativeai>=0.7.0    # Google Gemini API client
-langchain-google-genai>=1.0.0 # LangChain integration for Gemini models
+groq>=0.9.0                   # Groq API client
+langchain-groq>=0.1.0         # LangChain integration for Groq (Llama 3.3, Mixtral)
 
 # ------------------------------------------------------------
 # LangGraph / Runnables (Pipeline Orchestration)
@@ -29,7 +29,7 @@ langchain-core>=0.2.0         # LangChain Runnables & LCEL pipeline primitives
 # ------------------------------------------------------------
 # React (Reasoning + Acting) agent is built using LangGraph
 # and LangChain's create_react_agent — no separate package needed
-# Requires: langchain, langchain-google-genai, langgraph (listed above)
+# Requires: langchain, langchain-groq, langgraph (listed above)
 
 # ------------------------------------------------------------
 # Environment & Configuration

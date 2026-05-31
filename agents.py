@@ -1,31 +1,31 @@
-from langchain.agents import create_agent
-from langchain_google_genai import ChatGoogleGenerativeAI
-from tools import web_search, scrape_webpage
+from langgraph.prebuilt import create_react_agent
+from langchain_groq import ChatGroq
+from tools import web_search, scrape_url
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
 
 #model setup
-llm = ChatGoogleGenerativeAI(model="gemini-2.0-pro", temperature=0, max_tokens=2048)
+llm = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    groq_api_key=os.getenv("GROQ_API_KEY"),
+    temperature=0,
+    max_tokens=2048,
+)
 
 
 #1st agent
-def build_search_agent(): 
-    return create_agent(
-        model=llm,
-        tools=[web_search], 
-    )
-    
+def build_search_agent():
+    return create_react_agent(llm, [web_search])
+
 
 #2nd agent
 def build_reader_agent():
-    return create_agent(
-        model=llm,
-        tools=[scrape_webpage], 
-    )
+    return create_react_agent(llm, [scrape_url])
 
 
 #Writer chain 
