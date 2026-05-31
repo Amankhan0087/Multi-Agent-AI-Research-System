@@ -7,7 +7,7 @@ import streamlit as st
 import time, re
 from datetime import datetime
 import extra_streamlit_components as stx
-from auth import init_db, register_user, login_user, create_session, get_session_user, delete_session
+from user_auth import init_db, register_user, login_user, create_session, get_session_user, delete_session
 from agents import build_reader_agent, build_search_agent, writer_chain, critic_chain
 
 COOKIE_NAME = "researchmind_session"
