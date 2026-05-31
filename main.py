@@ -9,7 +9,7 @@ Usage:
 """
 
 import sys
-from agent import run_research
+from pipeline import run_research_pipeline
 
 
 BANNER = """
@@ -30,7 +30,9 @@ def main():
     if len(sys.argv) > 1:
         query = " ".join(sys.argv[1:])
         print(f"[Query]: {query}\n{'-'*60}")
-        print(run_research(query))
+        result = run_research_pipeline(query)
+        print(f"\n{'='*60}\n[FINAL REPORT]\n{'='*60}\n{result['report']}")
+        print(f"\n{'='*60}\n[CRITIC FEEDBACK]\n{'='*60}\n{result['feedback']}")
         return
 
     # Interactive loop mode
@@ -50,8 +52,9 @@ def main():
         print(f"\n{'-'*60}")
         print("Researching... (this may take a few seconds)\n")
         try:
-            answer = run_research(query)
-            print(f"[Answer]\n\n{answer}")
+            result = run_research_pipeline(query)
+            print(f"\n{'='*60}\n[FINAL REPORT]\n{'='*60}\n{result['report']}")
+            print(f"\n{'='*60}\n[CRITIC FEEDBACK]\n{'='*60}\n{result['feedback']}")
         except Exception as e:
             print(f"[Error]: {e}")
         print(f"{'-'*60}")
