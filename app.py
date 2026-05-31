@@ -360,13 +360,21 @@ def generate_pdf(topic: str, report: str, feedback: str) -> bytes:
     pdf.set_auto_page_break(auto=True, margin=18)
     pdf.add_page()
 
+    # Compute usable page width once — avoids "not enough horizontal space"
+    # that happens when multi_cell(0,...) is called with X not at left margin
+    W = pdf.w - pdf.l_margin - pdf.r_margin
+
+    def row(font, size, style, color, h, text, indent=0):
+        """Reset X to left margin, apply style, write multi_cell with fixed W."""
+        pdf.set_x(pdf.l_margin + indent)
+        pdf.set_font(font, style, size)
+        pdf.set_text_color(*color)
+        pdf.multi_cell(W - indent, h, text)
+        pdf.set_x(pdf.l_margin)   # always reset X after multi_cell
+
     # Title block
-    pdf.set_font("Helvetica", "B", 18)
-    pdf.set_text_color(30, 30, 30)
-    pdf.cell(0, 12, "Research Report", ln=True)
-    pdf.set_font("Helvetica", "", 11)
-    pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 7, f"Topic: {_clean(topic)}", ln=True)
+    row("Helvetica", 18, "B", (30, 30, 30),   12, "Research Report")
+    row("Helvetica", 11, "",  (100, 100, 100),  7, f"Topic: {_clean(topic)}")
     pdf.ln(3)
 
     # Report body
@@ -375,38 +383,28 @@ def generate_pdf(topic: str, report: str, feedback: str) -> bytes:
         if not line:
             pdf.ln(3); continue
         if line.startswith("# "):
-            pdf.set_font("Helvetica", "B", 15); pdf.set_text_color(255, 140, 50)
-            pdf.multi_cell(0, 9, _clean(line[2:])); pdf.set_text_color(30, 30, 30)
+            row("Helvetica", 15, "B", (255, 140, 50),  9, _clean(line[2:]))
         elif line.startswith("## "):
-            pdf.set_font("Helvetica", "B", 13); pdf.set_text_color(255, 140, 50)
-            pdf.multi_cell(0, 8, _clean(line[3:])); pdf.set_text_color(30, 30, 30)
+            row("Helvetica", 13, "B", (255, 140, 50),  8, _clean(line[3:]))
         elif line.startswith("### "):
-            pdf.set_font("Helvetica", "B", 11); pdf.set_text_color(60, 60, 60)
-            pdf.multi_cell(0, 7, _clean(line[4:])); pdf.set_text_color(30, 30, 30)
+            row("Helvetica", 11, "B", (60, 60, 60),    7, _clean(line[4:]))
         elif line.startswith(("- ", "* ", "+ ")):
-            pdf.set_font("Helvetica", "", 10); pdf.set_text_color(30, 30, 30)
-            pdf.cell(6); pdf.multi_cell(0, 6, f"  {_clean(line[2:])}")
+            row("Helvetica", 10, "",  (30, 30, 30),    6, f"- {_clean(line[2:])}", indent=4)
         elif line.startswith("**") and line.endswith("**"):
-            pdf.set_font("Helvetica", "B", 10); pdf.set_text_color(30, 30, 30)
-            pdf.multi_cell(0, 7, _clean(line[2:-2]))
+            row("Helvetica", 10, "B", (30, 30, 30),    7, _clean(line[2:-2]))
         else:
-            pdf.set_font("Helvetica", "", 10); pdf.set_text_color(30, 30, 30)
-            pdf.multi_cell(0, 6, _clean(line))
+            row("Helvetica", 10, "",  (30, 30, 30),    6, _clean(line))
 
     # Critic feedback page
     pdf.add_page()
-    pdf.set_font("Helvetica", "B", 15)
-    pdf.set_text_color(80, 200, 120)
-    pdf.cell(0, 10, "Critic Feedback", ln=True)
+    row("Helvetica", 15, "B", (80, 200, 120), 10, "Critic Feedback")
     pdf.set_draw_color(80, 200, 120)
     pdf.set_line_width(0.3)
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.line(pdf.l_margin, pdf.get_y(), pdf.w - pdf.r_margin, pdf.get_y())
     pdf.ln(5)
-    pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(30, 30, 30)
     for line in feedback.split("\n"):
         if line.strip():
-            pdf.multi_cell(0, 6, _clean(line.strip()))
+            row("Helvetica", 10, "", (30, 30, 30), 6, _clean(line.strip()))
         else:
             pdf.ln(3)
 
