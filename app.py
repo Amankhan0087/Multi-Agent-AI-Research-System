@@ -6,12 +6,8 @@ Multi-Agent AI Research Pipeline · Groq + Gemini fallback · Auth + PDF export
 import streamlit as st
 import time, re
 from datetime import datetime
-import extra_streamlit_components as stx
-from user_auth import init_db, register_user, login_user, create_session, get_session_user, delete_session
+from user_auth import init_db, register_user, login_user
 from agents import build_reader_agent, build_search_agent, writer_chain, critic_chain
-
-COOKIE_NAME = "researchmind_session"
-COOKIE_DAYS = 30
 
 
 def get_secret(key: str) -> str:
@@ -419,14 +415,10 @@ def reset_pipeline():
     st.session_state.elapsed      = None
 
 
-# ── Cookie manager (persistent login) ────────────────────────────────────────
-cookie_manager = stx.CookieManager(key="researchmind_cm")
-
 # ── Session state ─────────────────────────────────────────────────────────────
 _defaults = {
     "authenticated": False,
     "username":      "",
-    "session_token": "",
     "current_step":  0,
     "results":       {},
     "error":         None,
@@ -437,16 +429,6 @@ _defaults = {
 for k, v in _defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
-
-# ── Auto-login from saved cookie ──────────────────────────────────────────────
-if not st.session_state.authenticated:
-    saved_token = cookie_manager.get(COOKIE_NAME)
-    if saved_token:
-        username = get_session_user(saved_token)
-        if username:
-            st.session_state.authenticated = True
-            st.session_state.username      = username
-            st.session_state.session_token = saved_token
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -482,15 +464,8 @@ if not st.session_state.authenticated:
                 else:
                     ok, username, msg = login_user(email_in, password_in)
                     if ok:
-                        from datetime import timedelta
-                        token = create_session(username, days=COOKIE_DAYS)
-                        cookie_manager.set(
-                            COOKIE_NAME, token,
-                            expires_at=datetime.now() + timedelta(days=COOKIE_DAYS),
-                        )
                         st.session_state.authenticated = True
                         st.session_state.username      = username
-                        st.session_state.session_token = token
                         st.rerun()
                     else:
                         st.error(msg)
@@ -591,9 +566,6 @@ with st.sidebar:
                 unsafe_allow_html=True)
 
     if st.button("Sign Out", key="btn_logout", use_container_width=True):
-        # Delete server-side session token and browser cookie
-        delete_session(st.session_state.get("session_token", ""))
-        cookie_manager.delete(COOKIE_NAME)
         for k in list(st.session_state.keys()):
             del st.session_state[k]
         st.rerun()
