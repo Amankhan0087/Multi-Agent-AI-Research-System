@@ -38,6 +38,11 @@ python-dotenv>=1.0.0          # Load API keys from .env file
 pydantic>=2.0.0               # Data validation and settings management
 
 # ------------------------------------------------------------
+# Frontend
+# ------------------------------------------------------------
+streamlit>=1.35.0             # Web UI framework for the research dashboard
+
+# ------------------------------------------------------------
 # Utilities
 # ------------------------------------------------------------
 typing-extensions>=4.8.0      # Extended type hints support

@@ -27,3 +27,9 @@ build/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Docker
+*.tar
+
+# Streamlit secrets (keep config.toml but ignore secrets.toml)
+.streamlit/secrets.toml
