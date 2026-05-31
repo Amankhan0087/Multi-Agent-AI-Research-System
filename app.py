@@ -255,11 +255,20 @@ def run_with_retry(fn, label: str, max_retries: int = 4):
             return fn()
         except Exception as e:
             err = str(e)
+            # Groq / Mistral rate limit — wait exact delay they report
             if "429" in err and "rate_limit" in err.lower():
                 match = re.search(r"try again in (\d+(?:\.\d+)?)s", err)
                 wait  = float(match.group(1)) + 1.0 if match else 6.0
                 if attempt < max_retries - 1:
                     st.toast(f"⏳ Rate limit on {label} — retrying in {wait:.0f}s…")
+                    time.sleep(wait)
+                    continue
+            # Network / connection reset errors — brief backoff then retry
+            elif any(x in err for x in ["ConnectionResetError", "10054", "Connection aborted",
+                                         "RemoteDisconnected", "ConnectionError"]):
+                wait = 3 * (attempt + 1)
+                if attempt < max_retries - 1:
+                    st.toast(f"🔌 Connection reset on {label} — retrying in {wait}s…")
                     time.sleep(wait)
                     continue
             raise
